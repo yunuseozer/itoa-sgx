@@ -56,6 +56,14 @@
     allow(const_static_lifetime, transmute_ptr_to_ptr),
 )]
 
+#![cfg_attr(all(feature = "mesalock_sgx",
+                not(target_env = "sgx")), no_std)]
+#![cfg_attr(all(target_env = "sgx", target_vendor = "mesalock"), feature(rustc_private))]
+
+#[cfg(all(feature = "mesalock_sgx", not(target_env = "sgx")))]
+#[macro_use]
+extern crate sgx_tstd as std;
+
 #[cfg(feature = "i128")]
 mod udiv128;
 
@@ -119,7 +127,7 @@ impl Buffer {
     #[allow(deprecated)]
     pub fn new() -> Buffer {
         Buffer {
-            bytes: unsafe { mem::uninitialized() },
+            bytes: unsafe { mem::MaybeUninit::zeroed().assume_init() },
         }
     }
 
